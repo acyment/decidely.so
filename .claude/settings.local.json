@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(touch:*)",
+      "Bash(python -m pytest tests/unit/test_models.py -v)",
+      "Bash(rm:*)",
+      "Bash(uv sync:*)",
+      "Bash(uv run pytest:*)",
+      "Bash(uv add:*)",
+      "Bash(uv pip install:*)",
+      "Bash(PYTHONPATH=/Users/acyment/dev/decidely.so uv run pytest tests/unit/test_models.py -v)",
+      "Bash(PYTHONPATH=/Users/acyment/dev/decidely.so uv run pytest tests/unit/test_repository.py -v)",
+      "Bash(PYTHONPATH=/Users/acyment/dev/decidely.so uv run pytest tests/unit/ -v)",
+      "Bash(PYTHONPATH=/Users/acyment/dev/decidely.so uv run pytest tests/unit/test_report_service.py -v)",
+      "Bash(PYTHONPATH=/Users/acyment/dev/decidely.so uv run pytest tests/listeners/commands/test_decidely_commands.py -v)",
+      "Bash(PYTHONPATH=/Users/acyment/dev/decidely.so uv run pytest tests/unit/ tests/listeners/commands/test_decidely_commands.py -v)",
+      "Bash(PYTHONPATH=/Users/acyment/dev/decidely.so uv run pytest tests/e2e/ -v)",
+      "Bash(PYTHONPATH=/Users/acyment/dev/decidely.so uv run pytest -v)",
+      "Bash(chmod:*)",
+      "WebFetch(domain:api.slack.com)",
+      "WebFetch(domain:tools.slack.dev)",
+      "Bash(PYTHONPATH=/Users/acyment/dev/decidely.so uv run pytest tests/unit/test_sqlite_repository.py::TestSQLiteRepository::test_sqlite_repository_implements_interface -xvs)",
+      "Bash(PYTHONPATH=/Users/acyment/dev/decidely.so uv run pytest tests/unit/test_sqlite_repository.py::TestSQLiteRepository::test_create_tables_on_init -xvs)",
+      "Bash(PYTHONPATH=/Users/acyment/dev/decidely.so uv run pytest tests/unit/test_sqlite_repository.py -xvs)",
+      "Bash(PYTHONPATH=/Users/acyment/dev/decidely.so uv run pytest tests/unit/test_sqlite_repository.py::TestSQLiteRepository::test_save_report_persists_to_db -xvs)",
+      "Bash(PYTHONPATH=/Users/acyment/dev/decidely.so uv run pytest tests/unit/test_sqlite_repository.py::TestSQLiteRepository::test_find_by_id_retrieves_from_db -xvs)",
+      "Bash(PYTHONPATH=/Users/acyment/dev/decidely.so uv run pytest tests/unit/test_sqlite_repository.py::TestSQLiteRepository::test_find_by_workspace_filters_correctly -xvs)",
+      "Bash(PYTHONPATH=/Users/acyment/dev/decidely.so uv run pytest tests/unit/test_sqlite_repository.py -v)",
+      "Bash(uv run:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ],
+    "deny": []
+  }
+}
