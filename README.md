@@ -1,97 +1,80 @@
-# Bolt for Python Template App
+# Decidely.so Slack Bot
 
-This is a generic Bolt for Python template app used to build out Slack apps.
+Decidely.so helps teams surface decision-making friction directly inside Slack. Team members log moments when they lacked authority or when initiative stalled. The bot aggregates those signals so retrospectives focus on concrete examples instead of gut feelings.
 
-Before getting started, make sure you have a development workspace where you have permissions to install apps. If you don’t have one setup, go ahead and [create one](https://slack.com/create).
-## Installation
+## What You Get
+- Slash commands for capturing and reviewing decision reports in-channel
+- Socket Mode bot that runs locally with no public ingress required
+- Structured storage layer (SQLite by default) behind a repository interface
+- Service layer that formats insight-rich summaries for Slack surfaces
+- Comprehensive test suite covering models, repositories, listeners, and end-to-end flows
 
-#### Create a Slack App
-1. Open [https://api.slack.com/apps/new](https://api.slack.com/apps/new) and choose "From an app manifest"
-2. Choose the workspace you want to install the application to
-3. Copy the contents of [manifest.json](./manifest.json) into the text box that says `*Paste your manifest code here*` (within the JSON tab) and click *Next*
-4. Review the configuration and click *Create*
-5. Click *Install to Workspace* and *Allow* on the screen that follows. You'll then be redirected to the App Configuration dashboard.
+## Commands
+| Command | Purpose |
+|---------|---------|
+| `/decidely` | Open a modal to submit a new decision report |
+| `/decidely-list` | Post a workspace-wide summary with per-report detail |
 
-#### Environment Variables
-Before you can run the app, you'll need to store some environment variables.
+Each report records the reporter, workspace, situation type (`lacked_authority` or `expected_initiative`), human-readable description, and UTC timestamp.
 
-1. Open your apps configuration page from this list, click **OAuth & Permissions** in the left hand menu, then copy the Bot User OAuth Token. You will store this in your environment as `SLACK_BOT_TOKEN`.
-2. Click ***Basic Information** from the left hand menu and follow the steps in the App-Level Tokens section to create an app-level token with the `connections:write` scope. Copy this token. You will store this in your environment as `SLACK_APP_TOKEN`.
+## Architecture Snapshot
+```
+app.py                 # Socket Mode entrypoint
+listeners/             # Slack Bolt listeners grouped by surface
+  commands/            # Slash command handlers
+  views/               # Modal submissions
+  actions/, events/, messages/, shortcuts/ # Additional surfaces
+services/report_service.py   # Business logic & Slack-friendly formatting
+models/report.py       # Immutable domain model with serialization helpers
+repositories/          # Storage abstraction & SQLite implementation
+tests/                 # Unit, listener, and e2e coverage
+```
+Supporting docs live in `ARCHITECTURE.md`, `DECIDELY_README.md`, and `SANDBOX_SETUP.md` if you need deeper dives.
 
-```zsh
-# Replace with your app token and bot token
-export SLACK_BOT_TOKEN=<your-bot-token>
-export SLACK_APP_TOKEN=<your-app-token>
+## Prerequisites
+- Python 3.12+
+- [uv](https://docs.astral.sh/uv/) for dependency management
+- Slack workspace where you can install custom apps
+
+## Install Dependencies
+```bash
+uv sync
 ```
 
-### Setup Your Local Project
-```zsh
-# Clone this project onto your machine
-git clone https://github.com/slack-samples/bolt-python-starter-template.git
-
-# Change into this project directory
-cd bolt-python-starter-template
-
-# Setup your python virtual environment
-python3 -m venv .venv
-source .venv/bin/activate
-
-# Install the dependencies
-pip install -r requirements.txt
-
-# Start your local server
-python3 app.py
+## Configure Slack Credentials
+Create a `.env` file (or export variables in your shell):
+```bash
+SLACK_BOT_TOKEN=xoxb-your-bot-token
+SLACK_APP_TOKEN=xapp-your-app-level-token
 ```
+Socket Mode is required; follow `SANDBOX_SETUP.md` for manifest-based installation and token generation.
 
-#### Linting
-```zsh
-# Run flake8 from root directory for linting
-flake8 *.py && flake8 listeners/
-
-# Run black from root directory for code formatting
-black .
+## Run the Bot
+```bash
+uv run python app.py
 ```
+The helper script `start.fish` bootstraps the same flow for fish users, loading `.env` automatically and validating tokens.
 
-#### Testing
-```zsh
-# Run pytest from root directory for unit testing
-pytest .
+## Populate Slash Commands (Optional Script)
+Once your app is installed, you can seed slash commands via:
+```bash
+./setup_commands.fish
 ```
+This script hits Slack's `commands.create` endpoint with the credentials from your environment.
 
-## Project Structure
-
-### `manifest.json`
-
-`manifest.json` is a configuration for Slack apps. With a manifest, you can create an app with a pre-defined configuration, or adjust the configuration of an existing app.
-
-### `app.py`
-
-`app.py` is the entry point for the application and is the file you'll run to start the server. This project aims to keep this file as thin as possible, primarily using it as a way to route inbound requests.
-
-### `/listeners`
-
-Every incoming request is routed to a "listener". Inside this directory, we group each listener based on the Slack Platform feature used, so `/listeners/shortcuts` handles incoming [Shortcuts](https://api.slack.com/interactivity/shortcuts) requests, `/listeners/views` handles [View submissions](https://api.slack.com/reference/interaction-payloads/views#view_submission) and so on.
-
-## App Distribution / OAuth
-
-Only implement OAuth if you plan to distribute your application across multiple workspaces. A separate `app_oauth.py` file can be found with relevant OAuth settings.
-
-When using OAuth, Slack requires a public URL where it can send requests. In this template app, we've used [`ngrok`](https://ngrok.com/download). Checkout [this guide](https://ngrok.com/docs#getting-started-expose) for setting it up.
-
-Start `ngrok` to access the app on an external network and create a redirect URL for OAuth. 
-
+## Testing
+```bash
+uv run pytest -v
 ```
-ngrok http 3000
-```
+Tests rely on the project root being on `PYTHONPATH`. When invoking outside of `uv`, export `PYTHONPATH=$(pwd)`.
 
-This output should include a forwarding address for `http` and `https` (we'll use `https`). It should look something like the following:
+## Project Conventions
+- Code style enforced via `ruff` and `black` (see `.flake8` and `pyproject.toml`)
+- Domain-first design keeps Bolt listeners thin while services handle behavior
+- Repositories abstract storage; swap `SQLiteReportRepository` for another backend without touching listeners
 
-```
-Forwarding   https://3cb89939.ngrok.io -> http://localhost:3000
-```
+## Deployment Notes
+For production or multi-workspace distribution, run `app_oauth.py` behind a public HTTPS endpoint (ngrok or your reverse proxy) and wire OAuth callbacks per `SANDBOX_SETUP.md`.
 
-Navigate to **OAuth & Permissions** in your app configuration and click **Add a Redirect URL**. The redirect URL should be set to your `ngrok` forwarding address with the `slack/oauth_redirect` path appended. For example:
-
-```
-https://3cb89939.ngrok.io/slack/oauth_redirect
-```
+## License
+This project ships with the MIT License (`LICENSE`).
